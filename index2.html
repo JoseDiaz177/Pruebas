@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cotización Astillero</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 p-8">
+
+    <!-- PANEL 1: Carga de Archivos -->
+    <div class="max-w-4xl mx-auto bg-white p-6 rounded-lg shadow-md">
+        <h1 class="text-2xl font-bold mb-6 text-gray-800">Sistema de Cotización Automatizada</h1>
+        <div class="grid grid-cols-2 gap-6">
+            <div class="border-2 border-dashed border-gray-300 rounded-lg p-10 text-center hover:bg-gray-50 transition">
+                <svg class="mx-auto h-12 w-12 text-gray-400 mb-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+                </svg>
+                <p class="text-gray-600 font-medium">Arrastra el RFQ (PDF)</p>
+                <!-- Agregado id="input-rfq" -->
+                <input type="file" id="input-rfq" class="mt-4 text-sm text-gray-500" accept=".pdf">
+            </div>
+            <div class="border-2 border-dashed border-gray-300 rounded-lg p-10 text-center hover:bg-gray-50 transition">
+                <svg class="mx-auto h-12 w-12 text-green-500 mb-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                </svg>
+                <p class="text-gray-600 font-medium">Arrastra el Tender (Excel)</p>
+                <!-- Agregado id="input-tender" -->
+                <input type="file" id="input-tender" class="mt-4 text-sm text-gray-500" accept=".xlsx, .xls">
+            </div>
+        </div>
+        <!-- Agregado id="btn-procesar" -->
+        <button id="btn-procesar" class="mt-8 w-full bg-blue-600 text-white py-3 rounded-lg font-semibold hover:bg-blue-700">Procesar Documentos con IA</button>
+    </div>
+
+    <!-- PANEL 2: Validación OCR -->
+    <div class="max-w-4xl mx-auto bg-white p-6 rounded-lg shadow-md mt-6">
+        <h2 class="text-xl font-bold mb-4 text-gray-800">Validación de Datos del Cliente (OCR)</h2>
+        <form class="grid grid-cols-2 gap-4">
+    <div><label class="block text-sm font-medium">Cliente</label><input type="text" id="ocr-cliente" class="w-full border p-2"></div>
+    <div><label class="block text-sm font-medium">Proyecto</label><input type="text" id="ocr-proyecto" class="w-full border p-2"></div>
+    <div><label class="block text-sm font-medium">Tipo</label><input type="text" id="ocr-tipo" class="w-full border p-2"></div>
+    <div><label class="block text-sm font-medium">Bandera</label><input type="text" id="ocr-bandera" class="w-full border p-2"></div>
+    <div><label class="block text-sm font-medium">Clase</label><input type="text" id="ocr-clase" class="w-full border p-2"></div>
+    <div><label class="block text-sm font-medium">Localización</label><input type="text" id="ocr-localizacion" class="w-full border p-2"></div>
+    <div><label class="block text-sm font-medium">Eslora (m)</label><input type="number" id="ocr-eslora" step="0.01" class="w-full border p-2"></div>
+    <div><label class="block text-sm font-medium">Dique Asignado</label><input type="text" id="ocr-dique" class="w-full border p-2 bg-blue-50 font-bold" readonly></div>
+    
+    <div class="col-span-2 flex gap-4 mt-4">
+        <button type="button" id="btn-generar" class="w-full bg-green-600 text-white py-2 rounded font-semibold">Generar Cotización</button>
+        <button type="button" id="btn-descargar-json" class="w-full bg-gray-800 text-white py-2 rounded font-semibold">Descargar JSON</button>
+    </div>
+</form>
+    </div>
+
+    <!-- PANEL 3: Resultados -->
+    <div class="max-w-6xl mx-auto bg-white p-6 rounded-lg shadow-md mt-6">
+        <div class="flex justify-between items-center mb-4">
+            <h2 class="text-xl font-bold text-gray-800">Cotización Estimada</h2>
+            <button class="bg-gray-800 text-white px-4 py-2 rounded shadow hover:bg-gray-900">Exportar a Excel</button>
+        </div>
+        
+        <div class="overflow-x-auto">
+            <table class="min-w-full bg-white border border-gray-200">
+                <thead class="bg-gray-50">
+                    <tr>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">ID Partida</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Descripción</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Cantidad</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Precio Unitario</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Total (USD)</th>
+                    </tr>
+                </thead>
+                <tbody id="tabla-resultados" class="divide-y divide-gray-200">
+                    <!-- Las filas se insertarán aquí dinámicamente -->
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- SCRIPT DE CONEXIÓN -->
+    <script>
+        const API_URL = "http://127.0.0.1:8000";
+
+        let ultimoJsonExtraido = null;
+
+        document.getElementById("btn-procesar").addEventListener("click", async () => {
+            const fileInput = document.getElementById("input-rfq");
+            if (fileInput.files.length === 0) {
+                alert("Selecciona el archivo PDF del RFQ.");
+                return;
+            }
+
+            const formData = new FormData();
+            formData.append("archivo_rfq", fileInput.files[0]);
+
+            try {
+                document.getElementById("btn-procesar").innerText = "Extrayendo con IA...";
+                const response = await fetch(`${API_URL}/api/extraer-datos-pdf`, { method: "POST", body: formData });
+                if (!response.ok) throw new Error("Error en el servidor");
+                const data = await response.json();
+
+                ultimoJsonExtraido = data;
+                document.getElementById("ocr-cliente").value = data.cliente || "";
+                document.getElementById("ocr-proyecto").value = data.proyecto || "";
+                document.getElementById("ocr-tipo").value = data.tipo || "";
+                document.getElementById("ocr-bandera").value = data.bandera || "";
+                document.getElementById("ocr-clase").value = data.clase || "";
+                document.getElementById("ocr-localizacion").value = data.localizacion || "";
+                document.getElementById("ocr-eslora").value = data.eslora || 0;
+                document.getElementById("ocr-dique").value = data.dique || "";
+                alert("¡Datos extraídos con éxito!");
+            } catch (error) {
+                console.error(error);
+                alert("Error al comunicarse con el backend.");
+            } finally {
+                document.getElementById("btn-procesar").innerText = "Procesar Documentos con IA";
+            }
+        });
+
+        document.getElementById("btn-generar").addEventListener("click", async () => {
+            const tenderInput = document.getElementById("input-tender");
+            if (tenderInput.files.length === 0) {
+                alert("Sube el archivo Excel (Tender).");
+                return;
+            }
+
+            const formData = new FormData();
+            formData.append("archivo_tender", tenderInput.files[0]);
+            formData.append("cliente", document.getElementById("ocr-cliente").value);
+            formData.append("eslora", document.getElementById("ocr-eslora").value);
+            formData.append("manga", document.getElementById("ocr-manga").value);
+
+            try {
+                document.getElementById("btn-generar").innerText = "Calculando precios...";
+                const response = await fetch(`${API_URL}/api/generar-cotizacion`, { method: "POST", body: formData });
+                if (!response.ok) throw new Error("Error al procesar el Excel");
+                
+                const data = await response.json();
+                console.log("Cotización generada:", data);
+                alert(`Cálculo exitoso. Gran Total: $${data.gran_total} USD.`);
+            } catch (error) {
+                console.error(error);
+                alert("Error al cruzar los datos.");
+            } finally {
+                document.getElementById("btn-generar").innerText = "Confirmar y Generar Cotización";
+            }
+        });
+
+        document.getElementById("btn-descargar-json").addEventListener("click", () => {
+    if (!ultimoJsonExtraido) {
+        alert("Primero procesa un PDF para generar los datos.");
+        return;
+    }
+    const blob = new Blob([JSON.stringify(ultimoJsonExtraido, null, 2)], { type: "application/json" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `Datos_${ultimoJsonExtraido.proyecto || 'Barco'}.json`;
+    a.click();
+    URL.revokeObjectURL(url);
+});
+    </script>
+</body>
+</html>
+
